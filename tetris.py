@@ -1,12 +1,13 @@
-import pygame
-import sys
 import random
-from typing import List, Tuple, Optional
+import sys
+from typing import List, Optional, Tuple
+
+import pygame
 
 # --- Konfigurasi Permainan ---
 COLS, ROWS = 10, 20
 BLOCK_SIZE = 30  # piksel per blok
-BORDER = 10      # margin di sekitar playfield
+BORDER = 10  # margin di sekitar playfield
 FPS = 60
 
 # Warna
@@ -17,56 +18,56 @@ LIGHT_GRAY = (90, 90, 90)
 
 # Warna Tetromino
 COLORS = {
-    'I': (0, 240, 240),   # Cyan
-    'O': (240, 240, 0),   # Yellow
-    'T': (160, 0, 240),   # Purple
-    'S': (0, 240, 0),     # Green
-    'Z': (240, 0, 0),     # Red
-    'J': (0, 0, 240),     # Blue
-    'L': (240, 160, 0),   # Orange
+    "I": (0, 240, 240),  # Cyan
+    "O": (240, 240, 0),  # Yellow
+    "T": (160, 0, 240),  # Purple
+    "S": (0, 240, 0),  # Green
+    "Z": (240, 0, 0),  # Red
+    "J": (0, 0, 240),  # Blue
+    "L": (240, 160, 0),  # Orange
 }
 
 # Bentuk Tetromino didefinisikan sebagai rotasi-rotasi dengan koordinat (x, y)
 # relatif terhadap pivot (kita gunakan kotak 4x4 dengan origin di kiri-atas bentuk)
 # Setiap rotasi: daftar 4 posisi blok (x, y)
 SHAPES = {
-    'I': [
+    "I": [
         [(0, 1), (1, 1), (2, 1), (3, 1)],
         [(2, 0), (2, 1), (2, 2), (2, 3)],
         [(0, 2), (1, 2), (2, 2), (3, 2)],
         [(1, 0), (1, 1), (1, 2), (1, 3)],
     ],
-    'O': [
+    "O": [
         [(1, 0), (2, 0), (1, 1), (2, 1)],
         [(1, 0), (2, 0), (1, 1), (2, 1)],
         [(1, 0), (2, 0), (1, 1), (2, 1)],
         [(1, 0), (2, 0), (1, 1), (2, 1)],
     ],
-    'T': [
+    "T": [
         [(1, 0), (0, 1), (1, 1), (2, 1)],
         [(1, 0), (1, 1), (2, 1), (1, 2)],
         [(0, 1), (1, 1), (2, 1), (1, 2)],
         [(1, 0), (0, 1), (1, 1), (1, 2)],
     ],
-    'S': [
+    "S": [
         [(1, 0), (2, 0), (0, 1), (1, 1)],
         [(1, 0), (1, 1), (2, 1), (2, 2)],
         [(1, 1), (2, 1), (0, 2), (1, 2)],
         [(0, 0), (0, 1), (1, 1), (1, 2)],
     ],
-    'Z': [
+    "Z": [
         [(0, 0), (1, 0), (1, 1), (2, 1)],
         [(2, 0), (1, 1), (2, 1), (1, 2)],
         [(0, 1), (1, 1), (1, 2), (2, 2)],
         [(1, 0), (0, 1), (1, 1), (0, 2)],
     ],
-    'J': [
+    "J": [
         [(0, 0), (0, 1), (1, 1), (2, 1)],
         [(1, 0), (2, 0), (1, 1), (1, 2)],
         [(0, 1), (1, 1), (2, 1), (2, 2)],
         [(1, 0), (1, 1), (0, 2), (1, 2)],
     ],
-    'L': [
+    "L": [
         [(2, 0), (0, 1), (1, 1), (2, 1)],
         [(1, 0), (1, 1), (1, 2), (2, 2)],
         [(0, 1), (1, 1), (2, 1), (0, 2)],
@@ -91,7 +92,9 @@ class Piece:
     def color(self) -> Tuple[int, int, int]:
         return COLORS[self.kind]
 
-    def blocks(self, rot: Optional[int] = None, pos: Optional[Tuple[int, int]] = None) -> List[Tuple[int, int]]:
+    def blocks(
+        self, rot: Optional[int] = None, pos: Optional[Tuple[int, int]] = None
+    ) -> List[Tuple[int, int]]:
         r = self.rot if rot is None else rot
         px, py = (self.x, self.y) if pos is None else pos
         coords = SHAPES[self.kind][r % 4]
@@ -109,12 +112,14 @@ class Tetris:
         height = self.play_height + BORDER * 2
 
         self.screen = pygame.display.set_mode((width, height))
-        pygame.display.set_caption('Tetris - Pygame')
+        pygame.display.set_caption("Tetris - Pygame")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('consolas', 22)
-        self.big_font = pygame.font.SysFont('consolas', 48, bold=True)
+        self.font = pygame.font.SysFont("consolas", 22)
+        self.big_font = pygame.font.SysFont("consolas", 48, bold=True)
 
-        self.grid: List[List[Optional[Tuple[int, int, int]]]] = [[None for _ in range(COLS)] for _ in range(ROWS)]
+        self.grid: List[List[Optional[Tuple[int, int, int]]]] = [
+            [None for _ in range(COLS)] for _ in range(ROWS)
+        ]
         self.current: Piece = self.random_piece()
         self.next_piece: Piece = self.random_piece()
         self.fall_timer = 0.0
@@ -135,8 +140,13 @@ class Tetris:
     def inside(self, x: int, y: int) -> bool:
         return 0 <= x < COLS and y < ROWS
 
-    def valid(self, piece: Piece, rot: Optional[int] = None, pos: Optional[Tuple[int, int]] = None) -> bool:
-        for (x, y) in piece.blocks(rot=rot, pos=pos):
+    def valid(
+        self,
+        piece: Piece,
+        rot: Optional[int] = None,
+        pos: Optional[Tuple[int, int]] = None,
+    ) -> bool:
+        for x, y in piece.blocks(rot=rot, pos=pos):
             if not self.inside(x, y):
                 return False
             if y >= 0:  # hanya cek tabrakan untuk baris yang terlihat
@@ -145,7 +155,7 @@ class Tetris:
         return True
 
     def lock_piece(self, piece: Piece):
-        for (x, y) in piece.blocks():
+        for x, y in piece.blocks():
             if 0 <= y < ROWS:
                 self.grid[y][x] = piece.color
         cleared = self.clear_lines()
@@ -197,7 +207,7 @@ class Tetris:
         new_rot = (self.current.rot + dr) % 4
         # Kick sederhana: coba posisi sekarang, lalu geser kiri/kanan bila perlu
         kicks = [(0, 0), (-1, 0), (1, 0), (-2, 0), (2, 0)]
-        for (kx, ky) in kicks:
+        for kx, ky in kicks:
             nx, ny = self.current.x + kx, self.current.y + ky
             if self.valid(self.current, rot=new_rot, pos=(nx, ny)):
                 self.current.rot = new_rot
@@ -212,7 +222,14 @@ class Tetris:
             y += 1
         return y
 
-    def draw_block(self, surf, x: int, y: int, color: Tuple[int, int, int], alpha: Optional[int] = None):
+    def draw_block(
+        self,
+        surf,
+        x: int,
+        y: int,
+        color: Tuple[int, int, int],
+        alpha: Optional[int] = None,
+    ):
         px = BORDER + x * BLOCK_SIZE
         py = BORDER + y * BLOCK_SIZE
         rect = pygame.Rect(px, py, BLOCK_SIZE, BLOCK_SIZE)
@@ -233,11 +250,15 @@ class Tetris:
         # garis grid vertikal
         for x in range(COLS + 1):
             px = BORDER + x * BLOCK_SIZE
-            pygame.draw.line(self.screen, LIGHT_GRAY, (px, BORDER), (px, BORDER + self.play_height))
+            pygame.draw.line(
+                self.screen, LIGHT_GRAY, (px, BORDER), (px, BORDER + self.play_height)
+            )
         # garis grid horizontal
         for y in range(ROWS + 1):
             py = BORDER + y * BLOCK_SIZE
-            pygame.draw.line(self.screen, LIGHT_GRAY, (BORDER, py), (BORDER + self.play_width, py))
+            pygame.draw.line(
+                self.screen, LIGHT_GRAY, (BORDER, py), (BORDER + self.play_width, py)
+            )
 
         # gambar blok terkunci
         for y in range(ROWS):
@@ -248,46 +269,48 @@ class Tetris:
 
         # ghost piece
         gy = self.ghost_position()
-        for (x, y) in self.current.blocks(pos=(self.current.x, gy)):
+        for x, y in self.current.blocks(pos=(self.current.x, gy)):
             if y >= 0:
                 self.draw_block(self.screen, x, y, self.current.color, alpha=60)
 
         # current piece
-        for (x, y) in self.current.blocks():
+        for x, y in self.current.blocks():
             if y >= 0:
                 self.draw_block(self.screen, x, y, self.current.color)
 
     def draw_sidebar(self):
         sidebar_x = BORDER * 2 + self.play_width
         # judul
-        title_surf = self.big_font.render('TETRIS', True, WHITE)
+        title_surf = self.big_font.render("TETRIS", True, WHITE)
         self.screen.blit(title_surf, (sidebar_x, BORDER))
 
         # skor
-        score_lbl = self.font.render('Skor:', True, WHITE)
+        score_lbl = self.font.render("Skor:", True, WHITE)
         self.screen.blit(score_lbl, (sidebar_x, BORDER + 80))
-        score_val = self.font.render(f'{self.score}', True, WHITE)
+        score_val = self.font.render(f"{self.score}", True, WHITE)
         self.screen.blit(score_val, (sidebar_x, BORDER + 105))
 
         # lines
-        lines_lbl = self.font.render('Lines:', True, WHITE)
+        lines_lbl = self.font.render("Lines:", True, WHITE)
         self.screen.blit(lines_lbl, (sidebar_x, BORDER + 140))
-        lines_val = self.font.render(f'{self.lines_cleared_total}', True, WHITE)
+        lines_val = self.font.render(f"{self.lines_cleared_total}", True, WHITE)
         self.screen.blit(lines_val, (sidebar_x, BORDER + 165))
 
         # next piece preview
-        next_lbl = self.font.render('Next:', True, WHITE)
+        next_lbl = self.font.render("Next:", True, WHITE)
         self.screen.blit(next_lbl, (sidebar_x, BORDER + 210))
 
         # gambar preview di kotak 6x6 blok
         preview_top = BORDER + 240
         preview_left = sidebar_x
         preview_cell = BLOCK_SIZE // 1
-        box_rect = pygame.Rect(preview_left, preview_top, preview_cell * 6, preview_cell * 6)
+        box_rect = pygame.Rect(
+            preview_left, preview_top, preview_cell * 6, preview_cell * 6
+        )
         pygame.draw.rect(self.screen, (15, 15, 15), box_rect)
         pygame.draw.rect(self.screen, GRAY, box_rect, 1)
 
-        for (x, y) in self.next_piece.blocks(pos=(2, 2)):
+        for x, y in self.next_piece.blocks(pos=(2, 2)):
             px = preview_left + x * preview_cell
             py = preview_top + y * preview_cell
             rect = pygame.Rect(px, py, preview_cell, preview_cell)
@@ -297,13 +320,13 @@ class Tetris:
         # kontrol
         controls_y = preview_top + 6 * preview_cell + 20
         controls = [
-            'Kontrol:',
-            'Panah Kiri/Kanan: Gerak',
-            'Panah Atas: Rotasi',
-            'Panah Bawah: Soft Drop',
-            'SPACE: Hard Drop',
-            'R: Restart',
-            'ESC: Keluar',
+            "Kontrol:",
+            "Panah Kiri/Kanan: Gerak",
+            "Panah Atas: Rotasi",
+            "Panah Bawah: Soft Drop",
+            "SPACE: Hard Drop",
+            "R: Restart",
+            "ESC: Keluar",
         ]
         for i, text in enumerate(controls):
             surf = self.font.render(text, True, WHITE)
@@ -373,11 +396,13 @@ class Tetris:
         self.draw_sidebar()
 
         if self.game_over:
-            overlay = pygame.Surface((self.play_width, self.play_height), pygame.SRCALPHA)
+            overlay = pygame.Surface(
+                (self.play_width, self.play_height), pygame.SRCALPHA
+            )
             overlay.fill((0, 0, 0, 160))
             self.screen.blit(overlay, (BORDER, BORDER))
-            text = self.big_font.render('GAME OVER', True, WHITE)
-            hint = self.font.render('Tekan R untuk restart', True, WHITE)
+            text = self.big_font.render("GAME OVER", True, WHITE)
+            hint = self.font.render("Tekan R untuk restart", True, WHITE)
             tx = BORDER + (self.play_width - text.get_width()) // 2
             ty = BORDER + self.play_height // 2 - 40
             hx = BORDER + (self.play_width - hint.get_width()) // 2
@@ -395,6 +420,6 @@ class Tetris:
             self.draw()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     game = Tetris()
     game.run()
